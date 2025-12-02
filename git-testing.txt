@@ -11,5 +11,3 @@ updating the changes in Feature-login Branch
 
 Updating for Feature2
 
-Adding new Feature
-
