@@ -11,3 +11,8 @@ variable "private_subnets" {
     az = string
   }))
 }
+variable "tags" {
+  description = "Common tags for all VPC resources"
+  type        = map(string)
+  default     = {}
+}

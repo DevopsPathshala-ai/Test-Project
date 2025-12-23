@@ -1,10 +1,26 @@
+locals {
+  common_tags = var.tags
+}
+
 resource "aws_vpc" "test" {
   cidr_block = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support = true
+    tags = merge(
+    {
+      Name = "vpc-main"
+    },
+    local.common_tags
+  )
 }
 resource "aws_internet_gateway" "test" {
   vpc_id = aws_vpc.test.id
+    tags = merge(
+    {
+      Name = "igw-main"
+    },
+    local.common_tags
+  )
 }
 resource "aws_subnet" "public" {
   for_each = var.public_subnets
@@ -12,6 +28,12 @@ resource "aws_subnet" "public" {
   cidr_block = each.value.cidr
   availability_zone = each.value.az
   map_public_ip_on_launch = true
+  tags = merge(
+    {
+      Name = "subnet-public-${each.key}"
+    },
+    local.common_tags
+  )
 }
 resource "aws_subnet" "private" {
   for_each = var.private_subnets
@@ -19,6 +41,12 @@ resource "aws_subnet" "private" {
   cidr_block = each.value.cidr
   availability_zone = each.value.az
   map_public_ip_on_launch = false
+  tags = merge(
+    {
+      Name = "subnet-private-${each.key}"
+    },
+    local.common_tags
+  )
 }
 resource "aws_route_table" "public" {
   for_each = aws_subnet.public
@@ -27,16 +55,28 @@ resource "aws_route_table" "public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.test.id
   }
-
+tags = merge(
+    {
+      Name = "rtb-public-${each.key}"
+    },
+    local.common_tags
+  )
 }
 resource "aws_route_table" "private" {
   for_each = aws_subnet.private
   vpc_id = aws_vpc.test.id
+tags = merge(
+    {
+      Name = "rtb-private-${each.key}"
+    },
+    local.common_tags
+  )
 }
 resource "aws_route_table_association" "public" {
   for_each = aws_subnet.public
   subnet_id = each.value.id
   route_table_id = aws_route_table.public[each.key].id
+
 }
 resource "aws_route_table_association" "private" {
   for_each = aws_subnet.private
